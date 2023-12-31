@@ -7,11 +7,30 @@ from bokeh.models import ColumnDataSource
 
 class IdealFunctionSelector:
     def __init__(self, training_data, ideal_functions):
+        """
+        Initialize IdealFunctionSelector.
+
+        Parameters:
+        - training_data (pd.DataFrame): DataFrame containing training data.
+        - ideal_functions (pd.DataFrame): DataFrame containing ideal functions.
+        """
         self.training_data = training_data
         self.ideal_functions = ideal_functions
         self.selected_functions = None
 
     def calculate_deviation(self, coefficients, x_values, y_values):
+        """
+        Calculate the deviation between predicted and actual values.
+
+        Parameters:
+        - coefficients (np.ndarray): Coefficients of the regression model.
+        - x_values (np.ndarray): X values.
+        - y_values (np.ndarray): Actual Y values.
+
+        Returns:
+        - float: Sum of squared deviations.
+        """
+           
         if len(coefficients) != len(x_values) or len(y_values) != len(x_values):
             raise ValueError("Length mismatch between coefficients, x_values, and y_values.")
         
@@ -20,6 +39,9 @@ class IdealFunctionSelector:
         return np.sum(deviations**2)
 
     def select_ideal_functions(self):
+        """
+        Select ideal functions based on least squares regression.
+        """
         x_values = self.training_data['x'].values
         y_values = self.training_data[['y1', 'y2', 'y3', 'y4']].values.T
 
@@ -37,9 +59,25 @@ class IdealFunctionSelector:
         self.selected_functions = selected_functions
 
     def get_selected_functions(self):
+        """
+        Get the selected ideal functions.
+
+        Returns:
+        - list: List of tuples containing function names and coefficients.
+        """
+         
         return self.selected_functions
 
     def predict_ideal_function_nos(self, test_data):
+        """
+        Predict ideal function numbers for test data.
+
+        Parameters:
+        - test_data (pd.DataFrame): DataFrame containing test data.
+
+        Returns:
+        - pd.Series: Predicted ideal function numbers.
+        """
         if 'X' not in test_data.columns:
             raise ValueError("Test data must have a column named 'X'.")
 
@@ -53,6 +91,13 @@ class IdealFunctionSelector:
         return pd.Series(predicted_function_nos, name="ideal_functions_df")
 
     def visualize_results(self, mapped_test_data, filename="ideal_functions.html"):
+        """
+        Visualize test data and ideal functions using Bokeh.
+
+        Parameters:
+        - mapped_test_data (pd.DataFrame): DataFrame containing mapped test data.
+        - filename (str): Name of the HTML file to save the plot.
+        """
         p = bp.figure(
             title="Test Data vs Ideal Functions",
             x_axis_label="X",
@@ -92,6 +137,9 @@ class IdealFunctionSelector:
         bp.save(p, filename)
 
 def main():
+    """
+    Main function to execute the workflow.
+    """
     database_url = 'sqlite:///data_fit.db'
     data_ingestion = DataIngestion(database_url)
 
@@ -116,7 +164,7 @@ def main():
     ideal_selector.visualize_results(mapped_test_data)
     
     selected_functions = ideal_selector.get_selected_functions()
-    
+
     # Visualize selected functions against test data
     p_selected_functions = bp.figure(
         title="Selected Functions vs Test Data",
